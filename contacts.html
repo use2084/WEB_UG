@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <meta charset="UTF-8">
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+    </style>
+    <link rel="icon" href="content\LogoIcon.ico">
+    <link rel="stylesheet" href="styles/styleContacts.css">
+</head>
+
+<body>
+    <div class="mainFlex">
+        <div class="side-menu">
+            <div class="phone-number">+7 (917) 738 97 69</div>
+            <a href="mainMenu.html"><button class="menu-button">Главная</button></a>
+            <a href="product.html"><button class="menu-button">Продукция</button></a>
+            <a href="service.html"><button class="menu-button">Сервис</button></a>
+            <a href="contacts.html"><button class="menu-button">Контакты</button></a>
+        </div>
+    <div class="main-menu">
+        
+        <div class="content">
+            <div class="header">
+                <div class="account-buttons">
+                    <a href="shoppingCart.html"><button class="menu-button">Корзина</button></a>
+                    <button onclick="logout()" class="menu-button">Выйти</button>
+                </div>
+            </div>
+            <div>
+                <div class="logoHead">
+                    <img src="content\LogoHorizontal.png" class="image-header">
+                </div>
+                <div class="head">
+                    <h1 class="company-heading">Контакты</h1>
+                </div>
+            </div>
+            <div id="message-container"></div>
+            
+            <div class="content-body">
+                <h2>Единый многоканальный номер</h2>
+                <h1>+7 (3476) 343-576</h1>
+                <h2>Производственная площадка</h2>
+                <div id="map" class="mapStyle"></div>
+                <table>
+                    <tr>
+                        <td>Адрес</td>
+                        <td>453250, Республика Башкортостан, г. Салават, улица Индустриальная, здание 7Г</td>
+                    </tr>
+                    <tr>
+                        <td>Приемная</td>
+                        <td>+7 (3476) 343-576, доб.0</td>
+                    </tr>
+                    <tr>
+                        <td>Отдел продаж и сервисного обслуживания</td>
+                        <td>+7 (3476) 343-576, доб.1<br>sales@ufagidromash.ru</td>
+                    </tr>
+                    <tr>
+                        <td>Отдел МТО и комплектации производства</td>
+                        <td>+7 (3476) 343-576, доб.2<br>mto@ufagidromash.ru</td>
+                    </tr>
+                    <tr>
+                        <td>Технический отдел</td>
+                        <td>+7 (3476) 343-576, доб.3<br>to@ufagidromash.ru</td>
+                    </tr>
+                </table>
+                <h2>Офис в г.Уфа</h2>
+                <div id="Ufamap" class="mapStyle"></div>
+                <table>
+                    <tr>
+                        <td>Адрес</td>
+                        <td>450052, Республика Башкортостан, г. Уфа, ул. Гоголя, 56</td>
+                    </tr>
+                    <tr>
+                        <td>Телефоны</td>
+                        <td>+7 (347) 250-07-23</td>
+                    </tr>
+                    <tr>
+                        <td>E-mail</td>
+                        <td>mail@ufagidromash.ru</td>
+                    </tr>
+                    <tr>
+                        <td>Вебсайт</td>
+                        <td><a href="www.ufagidromash.ru">www.ufagidromash.ru</a></td>
+                    </tr>
+                </table>
+                
+            </div>
+            <div class="footer">
+                    <p class="num-p">8 3476 343-576</p>
+                    <p>Головной офис</p>
+                    <p>Уфа, ул. Гоголя, 56</p>
+                    <p>Производственная площадка</p>
+                    <p>Салават, ул.Индустриальная, здание 7Г</p>
+                </div>
+                </div>
+        </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        function logout() {
+            const confirmLogout = confirm("Вы уверены, что хотите выйти? Данные могут не сохраниться.");
+            if (confirmLogout) {
+                localStorage.removeItem('cartItems'); 
+                document.cookie = 'CompanyId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.href = "auth.html";
+            }
+        }
+       ymaps.ready(init);
+        function init() {
+            var myMap = new ymaps.Map('map', {
+                center: [53.339016, 55.899582],
+                zoom: 16,
+                controls: []
+            });
+            
+            var myPlacemark = new ymaps.Placemark([53.339016, 55.899582], {}, {
+                preset: 'islands#redDotIcon'
+            });
+            
+            myMap.geoObjects.add(myPlacemark);
+        }
+        ymaps.ready(Ufamap);
+        function Ufamap() {
+            var myMap = new ymaps.Map('Ufamap', {
+                center: [54.727947, 55.939009],
+                zoom: 19,
+                controls: []
+            });
+
+            var myPlacemark = new ymaps.Placemark([54.727947, 55.939009], {}, {
+                preset: 'islands#redDotIcon'
+            });
+
+            myMap.geoObjects.add(myPlacemark);
+        }
+    </script>
+    </body>
+</html>

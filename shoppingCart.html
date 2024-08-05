@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уфагидромаш</title>
+    <script src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+    </style>
+    <link rel="stylesheet" href="styles/styleshoppingCart.css">
+    <link rel="icon" href="content/LogoIcon.ico">
+</head>
+
+<body>
+    <div class="mainFlex">
+        <div class="side-menu">
+            <div class="phone-number">+7 (917) 738 97 69</div>
+            <a href="mainMenu.html"><button class="menu-button">Главная</button></a>
+            <a href="product.html"><button class="menu-button">Продукция</button></a>
+            <a href="service.html"><button class="menu-button">Сервис</button></a>
+            <a href="contacts.html"><button class="menu-button">Контакты</button></a>
+        </div>
+        <div class="main-menu">
+            <div class="content">
+                <div class="header">
+                    <div class="account-buttons">
+                        <a href="shoppingCart.html"><button class="menu-button">Корзина</button></a>
+                        <button onclick="logout()" class="menu-button">Выйти</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="logoHead">
+                        <img src="content/LogoHorizontal.png" class="image-header">
+                    </div>
+                    <div class="head">
+                        <h1 class="company-heading">Корзина</h1>
+                    </div>
+                </div>
+                <div id="cart-items">
+                    <div id="product-section">
+                        <h2>Товары</h2>
+                        <!-- Здесь будут отображаться товары -->
+                    </div>
+                    <div id="service-section">
+                        <h2>Услуги</h2>
+                        <!-- Здесь будут отображаться услуги -->
+                    </div>
+                </div>
+                <div id="total-price" class="total-price"></div>
+                <button onclick="confirmOrder()" id="order-button" class="order-button" style="display: none;">Оформить заказ</button>
+                <p id="empty-cart-message" style="display: none; margin-left: 30px;">Корзина пуста</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            renderCartItemsFromLocalStorage();
+            calculateTotalPrice();
+        };
+
+        function renderCartItemsFromLocalStorage() {
+            const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            const serviceItems = JSON.parse(localStorage.getItem('serviceItems')) || [];
+            const productSection = document.getElementById('product-section');
+            const serviceSection = document.getElementById('service-section');
+            productSection.innerHTML = '';
+            serviceSection.innerHTML = '';
+
+            renderProductItems(cartItems, productSection);
+            renderServiceItems(serviceItems, serviceSection);
+
+            calculateTotalPrice();
+        }
+
+        function renderProductItems(cartItems, productSection) {
+            if (cartItems.length > 0) {
+                cartItems.forEach(item => {
+                    renderCartItem(item, productSection);
+                });
+            }
+        }
+
+        function renderCartItem(cartItem, productSection) {
+            const productContainer = document.createElement('div');
+            productContainer.classList.add('product-container');
+            productContainer.dataset.productId = cartItem.ProductId;
+
+            const productName = document.createElement('span');
+            productName.textContent = `Наименование товара: ${decodeURIComponent(cartItem.ProductName)}`;
+            productName.classList.add('product-name');
+
+            const productPrice = document.createElement('span');
+            productPrice.textContent = `Цена: ${cartItem.ProductPrice} руб.`;
+            productPrice.classList.add('product-price');
+
+            const productQuantity = document.createElement('input');
+            productQuantity.type = 'number';
+            productQuantity.value = cartItem.Quantity;
+            productQuantity.min = '0';
+            productQuantity.max = '9';
+            productQuantity.classList.add('quantity-input');
+            productQuantity.classList.add('product-quantity');
+            productQuantity.addEventListener('input', () => {
+                const quantity = parseInt(productQuantity.value);
+                if (quantity === 0) {
+                    const confirmRemove = confirm("Вы действительно хотите убрать позицию из корзины?");
+                    if (confirmRemove) {
+                    removeFromCart(cartItem.ProductId);
+                    productContainer.remove();
+                } else {
+                    productQuantity.value = 1;
+                }
+            } else {
+                cartItem.Quantity = quantity;
+                updateCartItemQuantity(cartItem.ProductId, quantity);
+                calculateTotalPrice();
+            }
+            calculateTotalPrice();
+        });
+
+        productContainer.appendChild(productName);
+        productContainer.appendChild(productPrice);
+        productContainer.appendChild(productQuantity);
+
+        const cartItemsContainer = document.getElementById('cart-items');
+        if (cartItem.Quantity > 0) {
+            cartItemsContainer.appendChild(productContainer);
+        }
+    }
+
+    function renderServiceItems(serviceItems, serviceSection) {
+        if (serviceItems.length > 0) {
+            serviceItems.forEach(item => {
+                renderServiceItem(item, serviceSection);
+            });
+        }
+    }
+
+    function renderServiceItem(serviceItem, serviceSection) {
+        const serviceContainer = document.createElement('div');
+        serviceContainer.classList.add('product-container');
+        serviceContainer.dataset.serviceId = serviceItem.ServiceId;
+
+        const serviceName = document.createElement('span');
+        serviceName.textContent = `Наименование услуги: ${decodeURIComponent(serviceItem.ServiceName)}`;
+        serviceName.classList.add('product-name');
+
+        const servicePrice = document.createElement('span');
+        servicePrice.textContent = `Цена: ${serviceItem.ServicePrice} руб.`;
+        servicePrice.classList.add('product-price');
+
+        const serviceQuantity = document.createElement('input');
+        serviceQuantity.type = 'number';
+        serviceQuantity.value = serviceItem.Quantity;
+        serviceQuantity.min = '0';
+        serviceQuantity.max = '9';
+        serviceQuantity.classList.add('quantity-input');
+        serviceQuantity.classList.add('product-quantity');
+        serviceQuantity.addEventListener('input', () => {
+            const quantity = parseInt(serviceQuantity.value);
+            if (quantity === 0) {
+                const confirmRemove = confirm("Вы действительно хотите убрать позицию из корзины?");
+                if (confirmRemove) {
+                    removeFromCartService(serviceItem.ServiceId);
+                    serviceContainer.remove();
+                } else {
+                    serviceQuantity.value = 1;
+                }
+            } else {
+                serviceItem.Quantity = quantity;
+                updateServiceItemQuantity(serviceItem.ServiceId, quantity);
+                calculateTotalPrice();
+            }
+            calculateTotalPrice();
+        });
+
+        serviceContainer.appendChild(serviceName);
+        serviceContainer.appendChild(servicePrice);
+        serviceContainer.appendChild(serviceQuantity);
+
+        const cartItemsContainer = document.getElementById('cart-items');
+        if (serviceItem.Quantity > 0) {
+            cartItemsContainer.appendChild(serviceContainer);
+        }
+    }
+
+    function removeFromCartService(serviceId) {
+        let serviceItems = JSON.parse(localStorage.getItem('serviceItems')) || [];
+        serviceItems = serviceItems.filter(item => item.ServiceId !== serviceId);
+        localStorage.setItem('serviceItems', JSON.stringify(serviceItems));
+    }
+
+    function updateServiceItemQuantity(serviceId, quantity) {
+        let serviceItems = JSON.parse(localStorage.getItem('serviceItems')) || [];
+        serviceItems = serviceItems.map(item => {
+            if (item.ServiceId === serviceId) {
+                item.Quantity = quantity;
+            }
+            return item;
+        });
+        localStorage.setItem('serviceItems', JSON.stringify(serviceItems));
+    }
+
+    function removeFromCart(productId) {
+        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        cartItems = cartItems.filter(item => item.ProductId !== productId);
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }
+
+    function updateCartItemQuantity(productId, quantity) {
+        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        cartItems = cartItems.map(item => {
+            if (item.ProductId === productId) {
+                item.Quantity = quantity;
+            }
+            return item;
+        });
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }
+
+    function calculateTotalPrice() {
+        let totalPrice = 0;
+        const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        const serviceItems = JSON.parse(localStorage.getItem('serviceItems')) || [];
+
+        const mergedCartItems = mergeItems(cartItems);
+        const mergedServiceItems = mergeItems(serviceItems);
+
+        if (mergedCartItems.length === 0 && mergedServiceItems.length === 0) {
+            document.getElementById('empty-cart-message').style.display = 'block';
+            document.getElementById('order-button').style.display = 'none';
+            document.getElementById('total-price').textContent = '';
+        } else {
+            mergedCartItems.forEach(item => {
+                totalPrice += item.ProductPrice * item.Quantity;
+            });
+            mergedServiceItems.forEach(item => {
+                totalPrice += item.ServicePrice * item.Quantity;
+            });
+
+            if (totalPrice <= 0) {
+                document.getElementById('empty-cart-message').style.display = 'block';
+                document.getElementById('order-button').style.display = 'none';
+                document.getElementById('total-price').textContent = '';
+            } else {
+                document.getElementById('total-price').textContent = `Итого: ${totalPrice} руб.`;
+                document.getElementById('empty-cart-message').style.display = 'none';
+                document.getElementById('order-button').style.display = 'block';
+            }
+        }
+        return totalPrice;
+    }
+
+    function mergeItems(items) {
+        const mergedItems = [];
+        items.forEach(item => {
+            let existingItem;
+            if (item.ProductId) {
+                existingItem = mergedItems.find(mergedItem => mergedItem.ProductId === item.ProductId);
+            } else if (item.ServiceId) {
+                existingItem = mergedItems.find(mergedItem => mergedItem.ServiceId === item.ServiceId);
+            }
+
+            if (existingItem) {
+                existingItem.Quantity += item.Quantity;
+            } else {
+                mergedItems.push({ ...item });
+            }
+        });
+        return mergedItems;
+    }
+
+    function confirmOrder() {
+        const confirmed = confirm("Вы уверены с заказом?");
+        if (confirmed) {
+            placeOrder();
+        }
+    }
+
+    function placeOrder() {
+        const companyId = localStorage.getItem('companyId');
+        const companyEmail = localStorage.getItem('companyEmailAddress');
+        const companyName = localStorage.getItem('companyName');
+
+        if (!companyId) {
+            alert("Ошибка: Не удалось получить данные о компании.");
+            return;
+        }
+
+        const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        const serviceItems = JSON.parse(localStorage.getItem('serviceItems')) || [];
+
+        const orderCost = calculateTotalPrice();
+
+        fetch('https://localhost:7253/ordersPostM', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                OrderCompany: companyId,
+                OrderDate: new Date().toISOString().slice(0, 10),
+                OrderCost: orderCost,
+                CartItems: cartItems,
+                ServiceItems: serviceItems,
+                ClientEmail: companyEmail,
+                CompanyName: companyName
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка создания заказа');
+            }
+            return response.json();
+        })
+        .then(orderData => {
+            const orderId = orderData.orderId;
+
+            localStorage.setItem('currentOrderId', orderId);
+
+            fetch('https://localhost:7253/sendEmail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ClientEmail: companyEmail,
+                    OrderId: orderId,
+CartItems: cartItems,
+ServiceItems: serviceItems,
+OrderCost: orderCost,
+CompanyName: companyName
+})
+})
+.then(response => {
+if (!response.ok) {
+throw new Error('Ошибка отправки электронной почты');
+}
+return response.json();
+})
+.then(data => {
+console.log('Email sent successfully');
+})
+.catch(error => {
+console.error('Ошибка отправки электронной почты:', error);
+});
+localStorage.removeItem('cartItems');
+            localStorage.removeItem('serviceItems');
+            alert('Детали заказа отправлены на почту');
+            window.location.href = 'mainMenu.html';
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Ошибка при создании заказа. Попробуйте позже.');
+        });
+    }
+</script>
+
+</body>
+
+</html>

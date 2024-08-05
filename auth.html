@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация</title>
+    <link rel="icon" href="content\LogoIcon.ico">
+    <link rel="stylesheet" href="styles/styleAuth.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <form class="login-form" id="login-form">
+            <img src="content\LogoTwo.jpg" alt="Логотип">
+            <h2>Авторизация</h2>
+            <div class="form-group">
+                <label for="username">Введите логин:</label>
+                <input type="text" id="username" name="CompanyLogin" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Введите пароль:</label>
+                <input type="password" id="password" name="CompanyPassword" required>
+            </div>
+            <button type="submit" id="login-button">Войти</button>
+        </form>
+        <div id="message-container"></div>
+    </div>
+
+    <script>
+        document.getElementById("login-form").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    var username = document.getElementById("username").value;
+    var password = document.getElementById("password").value;
+    await loginUser(username, password);
+});
+
+async function loginUser(username, password) {
+    var loginData = { CompanyLogin: username, CompanyPassword: password };
+    try {
+        var response = await fetch('https://localhost:7253/loginCompany', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginData)
+        });
+        if (response.ok) {
+    var responseData = await response.json();
+    if (responseData && responseData.companyId) {
+    console.log("Данные компании:", responseData);
+    localStorage.setItem('companyId', responseData.companyId);
+    localStorage.setItem('companyEmailAddress', responseData.companyEmailAddress); 
+    localStorage.setItem('companyName', responseData.companyName); 
+    window.location.href = `mainMenu.html`;
+    } else {
+        showMessage("Ошибка: Неверный формат ответа сервера.", false);
+    }
+        } else {
+            showMessage("Ошибка авторизации. Проверьте введенные данные.", false);
+            console.error('Ошибка HTTP: ' + response.status);
+        }
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+        showMessage("Произошла ошибка. Попробуйте позже.", false);
+    }
+}
+
+function showMessage(message, isSuccess) {
+    var messageContainer = document.getElementById('message-container');
+    messageContainer.textContent = message;
+    messageContainer.style.color = isSuccess ? 'green' : 'red';
+}
+
+    </script>
+</body>
+
